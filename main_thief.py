@@ -85,11 +85,13 @@ class Rouge:
         "A7", None, "A#7", None, "B7", None, "C8", None
     ]
     key_ending_tracker = key_starting_tracker.copy()
-
     monitor_width, monitor_height = get_monitor(0)
     screen_grabber = Paparatsy(0, 0, monitor_width, monitor_height, 1)
 
     def __init__(self):
+        self.timer_initiated = None
+        self.note_timestamps = []
+
         keyboard_height, keyboard_width, self.keyboard_coordinates = self.keyboard_getter()
         self.starting_x_val = abs(self.keyboard_coordinates[0])
         # self.starting_x_val = 0
@@ -122,12 +124,14 @@ class Rouge:
 
         self.segment_grabber = Paparatsy(0, self.scan_line_y, self.monitor_width, 1)
 
+    def main(self):
         while True:
             self.timer_initiated = time.time()
             self.segment_grabber.screengrab()
-            self.detection_line()
-            active_notes = [i for i in self.live_keyboard if i[1] == 1]
+            active_notes = self.detection_line()
+            current_tempo = self.calculate_tempo()
             print(f"{active_notes}\n")
+            print(f"current tempo: {current_tempo}")
             print(time.time() - self.timer_initiated)
         # self.vst()
 
@@ -137,6 +141,13 @@ class Rouge:
             detected_changes = list(tpe.map(self.detect_gsv_change, self.base_line))
             futures = [tpe.submit(self.false_positive_protection, i, detected_changes)
                        for i in range(len(detected_changes))]
+
+        active_notes = [i for i in self.live_keyboard if i[1] == 1]
+
+        if len(active_notes) > 0:
+            self.note_timestamps.append(time.time())
+
+        return active_notes
 
     def false_positive_protection(self, i, detected_changes):
         if detected_changes[i] == 1:
@@ -163,6 +174,20 @@ class Rouge:
             return 1
         else:
             return 0
+
+    def calculate_tempo(self):
+        if len(self.note_timestamps) < 2:
+            return None
+
+        time_intervals = [self.note_timestamps[j] - self.note_timestamps[j - 1]
+                          for j in range(1, len(self.note_timestamps))]
+
+        average_interval = sum(time_intervals) / len(time_intervals)
+
+        # Calculate tempo in Beats Per Minute (BPM)
+        tempo_bpm = 60 / average_interval
+
+        return tempo_bpm
 
     def key_layering(self):
         repeating_note_pattern = self.rbr(350)
@@ -235,3 +260,4 @@ class Rouge:
 
 
 test = Rouge()
+test.main()

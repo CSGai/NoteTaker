@@ -7,7 +7,7 @@ from mido.midifiles import MidiFile, MidiTrack
 from mido.messages import Message
 
 
-def get_monitor(mon_num):
+def get_monitor(mon_num, primary=True):
     monitors = screeninfo.get_monitors()
     target_monitor = monitors[mon_num]
     return target_monitor.width, target_monitor.height
