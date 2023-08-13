@@ -83,14 +83,13 @@ class Paparatsy:
 
 class Converter:
 
-    def __init__(self, output_file='song_titile.mid', tempo=500000):
+    def __init__(self, output_file='song_titile.mid'):
 
         self.output_file = output_file
         self.midi_file = MidiFile(type=0)
         self.track = MidiTrack()
 
         self.midi_file.tracks.append(self.track)
-        self.track.append(Message('set_tempo', tempo=tempo))
 
         self.midi_file.save(output_file)
 

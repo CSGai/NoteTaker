@@ -67,7 +67,7 @@ class Rouge:
         ["F7", None], ["F#7", None], ["G7", None], ["G#7", None],
         ["A7", None], ["A#7", None], ["B7", None], ["C8", None]
     ]
-    key_starting_tracker = [
+    key_starting_timer = [
         "A0", None, "A#0", None, "B0", None, "C1", None, "C#1", None, "D1", None, "D#1", None,
         "E1", None, "F1", None, "F#1", None, "G1", None, "G#1", None,
         "A1", None, "A#1", None, "B1", None, "C2", None, "C#2", None, "D2", None, "D#2", None,
@@ -84,17 +84,19 @@ class Rouge:
         "E7", None, "F7", None, "F#7", None, "G7", None, "G#7", None,
         "A7", None, "A#7", None, "B7", None, "C8", None
     ]
-    key_ending_tracker = key_starting_tracker.copy()
+    key_ending_timer = key_starting_timer.copy()
+    # song_name = input(print("input song name: "))
+    song_name = "test"
+    song_name = song_name + ".mid"
     monitor_width, monitor_height = get_monitor(0)
+    transformative = Converter(song_name)
     screen_grabber = Paparatsy(0, 0, monitor_width, monitor_height, 1)
 
     def __init__(self):
-        self.timer_initiated = None
-        self.note_timestamps = []
-
         keyboard_height, keyboard_width, self.keyboard_coordinates = self.keyboard_getter()
         self.starting_x_val = abs(self.keyboard_coordinates[0])
         # self.starting_x_val = 0
+
         self.keyboard_height = keyboard_height
         self.keyboard_width = keyboard_width
 
@@ -124,15 +126,13 @@ class Rouge:
 
         self.segment_grabber = Paparatsy(0, self.scan_line_y, self.monitor_width, 1)
 
+        self.timer_initiated = time.time()
+
     def main(self):
         while True:
-            self.timer_initiated = time.time()
             self.segment_grabber.screengrab()
             active_notes = self.detection_line()
-            current_tempo = self.calculate_tempo()
             print(f"{active_notes}\n")
-            print(f"current tempo: {current_tempo}")
-            print(time.time() - self.timer_initiated)
         # self.vst()
 
     def detection_line(self):
@@ -143,10 +143,6 @@ class Rouge:
                        for i in range(len(detected_changes))]
 
         active_notes = [i for i in self.live_keyboard if i[1] == 1]
-
-        if len(active_notes) > 0:
-            self.note_timestamps.append(time.time())
-
         return active_notes
 
     def false_positive_protection(self, i, detected_changes):
@@ -155,12 +151,14 @@ class Rouge:
                                        self.sub_base_line[2 * i])) == 1:
                 if self.detect_gsv_change((((self.pixel_collection[i] + self.safety_margine), self.scan_line_y),
                                            self.sub_base_line[2 * i + 1])) == 1:
+                    if self.live_keyboard[i][1] == 0:
+                        self.key_starting_timer[i*2] = time.time()
                     self.live_keyboard[i][1] = 1
-                    # self.key_starting_tracker[i * 2] = time.time()
                     return
         if self.live_keyboard[i][1] == 1:
-            pass
-            # self.key_ending_tracker[i * 2] = time.time()
+            self.key_ending_timer[i * 2] = time.time()
+            print(f"note {self.live_keyboard[i][0]} has ended...\n")
+            print("--- %s seconds ---" % {self.key_ending_timer[i*2]-self.key_starting_timer[i*2]})
         self.live_keyboard[i][1] = 0
 
     def detect_gsv_change(self, base_line_item, threshold=35):
@@ -174,20 +172,6 @@ class Rouge:
             return 1
         else:
             return 0
-
-    def calculate_tempo(self):
-        if len(self.note_timestamps) < 2:
-            return None
-
-        time_intervals = [self.note_timestamps[j] - self.note_timestamps[j - 1]
-                          for j in range(1, len(self.note_timestamps))]
-
-        average_interval = sum(time_intervals) / len(time_intervals)
-
-        # Calculate tempo in Beats Per Minute (BPM)
-        tempo_bpm = 60 / average_interval
-
-        return tempo_bpm
 
     def key_layering(self):
         repeating_note_pattern = self.rbr(350)
