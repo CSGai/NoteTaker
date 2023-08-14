@@ -91,11 +91,8 @@ class Rouge:
     timer_buffer = og_map.copy()
     key_buffer = og_map.copy()
 
-    song_name = input(print("input song name: "))
-    song_name = song_name + ".mid"
-
     monitor_width, monitor_height = get_monitor(0)
-    transformative = Converter(song_name)
+    transformative = Converter()
     screen_grabber = Paparatsy(0, 0, monitor_width, monitor_height, 1)
 
     def __init__(self):
@@ -136,14 +133,14 @@ class Rouge:
         self.timer_initiated = time.time()
 
     def main(self):
-        active_buffer_keys = []
-        active_buffer_timer = []
         while True:
-            self.timer_buffer = self.og_map
-            self.key_buffer = self.og_map
-            active_buffer_keys.clear()
-            active_buffer_timer.clear()
+
+            active_buffer_keys = []
+            active_buffer_timer = []
             diction_list = []
+
+            self.timer_buffer = self.og_map.copy()
+            self.key_buffer = self.og_map.copy()
 
             self.segment_grabber.screengrab()
             active_notes = self.detection_line()
@@ -155,14 +152,18 @@ class Rouge:
                 break
 
             active_buffer_timer = [i for i in self.timer_buffer if isinstance(i, float)]
+            print(active_buffer_timer)
             if len(active_buffer_timer) > 0:
-                active_buffer_keys = [i for i in self.key_buffer if isinstance(i, int)]
+                for i in range(len(self.key_buffer)):
+                    if isinstance(self.key_buffer[i], int):
+                        active_buffer_keys.append(self.key_buffer[i-1])
                 for i in range(len(active_buffer_keys)):
                     temp_dict = {"key": active_buffer_keys[i],
                                  "velocity": 63,
                                  "duration": active_buffer_timer[i]}
                     diction_list.append(temp_dict)
                 self.transformative.apply_notes(diction_list)
+                print("appended")
 
         # self.vst()
 

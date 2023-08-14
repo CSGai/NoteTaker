@@ -3,7 +3,7 @@ import numpy
 import screeninfo
 from pynput import keyboard, mouse
 from mss import mss
-from mido.midifiles import MidiFile, MidiTrack
+from mido.midifiles import MidiFile, MidiTrack, MetaMessage, bpm2tempo
 from mido.messages import Message
 
 
@@ -102,12 +102,19 @@ class Converter:
     }
     ticks_per_beat = 480
 
-    def __init__(self, output_file='song_titile.mid'):
+    def __init__(self):
+        song_name = input()
+        song_name = song_name + ".mid"
 
-        self.output_file = output_file
+        tempo = int(input())
+        tempo = bpm2tempo(tempo)
+
+        self.output_file = song_name
         self.midi_file = MidiFile(type=0)
+
         self.track = MidiTrack()
         self.midi_file.tracks.append(self.track)
+        self.track.append(MetaMessage('set_tempo', tempo=tempo))
 
     def apply_notes(self, note_dict):
         for note in note_dict:
@@ -120,7 +127,7 @@ class Converter:
 
             self.track.append(Message('note_on', note=note_number, velocity=velocity, time=duration))
             self.track.append(Message('note_off', note=note_number, velocity=0))
-            print(f"{note_number}, {duration} correctly")
+            print(f"appended {note_number}, for duration: {duration}, correctly")
 
     def finish_song(self):
         print("finished song")
