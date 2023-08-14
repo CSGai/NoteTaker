@@ -100,27 +100,28 @@ class Converter:
         "A7": 105, "A#7": 106, "B7": 107,
         "C8": 108
     }
+    ticks_per_beat = 480
 
     def __init__(self, output_file='song_titile.mid'):
 
         self.output_file = output_file
         self.midi_file = MidiFile(type=0)
         self.track = MidiTrack()
-
         self.midi_file.tracks.append(self.track)
 
-        self.midi_file.save(output_file)
-
     def apply_notes(self, note_dict):
-
         for note in note_dict:
             key = note['key']
             velocity = note['velocity']
-            duration = note['duration']
+            seconds = note['duration']
 
             note_number = self.piano_notes_midi_dict[f'{key}']
+            duration = int(seconds * self.ticks_per_beat)
 
-            self.track.append(Message('note_on', note=note_number, velocity=velocity))
-            self.track.append(Message('note_off', note=note_number, velocity=0, time=duration))
+            self.track.append(Message('note_on', note=note_number, velocity=velocity, time=duration))
+            self.track.append(Message('note_off', note=note_number, velocity=0))
+            print(f"{note_number}, {duration} correctly")
 
+    def finish_song(self):
+        print("finished song")
         self.midi_file.save(self.output_file)

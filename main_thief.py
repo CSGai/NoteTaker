@@ -20,6 +20,8 @@ from note_spy import *
 from cv2 import waitKey
 from concurrent.futures import ThreadPoolExecutor
 import time
+from keyboard import is_pressed
+from threading import Thread
 
 
 class Rouge:
@@ -87,6 +89,7 @@ class Rouge:
     key_starting_timer = og_map.copy()
     key_ending_timer = key_starting_timer.copy()
     timer_buffer = og_map.copy()
+    key_buffer = og_map.copy()
 
     song_name = input(print("input song name: "))
     song_name = song_name + ".mid"
@@ -96,6 +99,7 @@ class Rouge:
     screen_grabber = Paparatsy(0, 0, monitor_width, monitor_height, 1)
 
     def __init__(self):
+        self.scrible = None
         keyboard_height, keyboard_width, self.keyboard_coordinates = self.keyboard_getter()
         self.starting_x_val = abs(self.keyboard_coordinates[0])
         # self.starting_x_val = 0
@@ -136,6 +140,7 @@ class Rouge:
         active_buffer_timer = []
         while True:
             self.timer_buffer = self.og_map
+            self.key_buffer = self.og_map
             active_buffer_keys.clear()
             active_buffer_timer.clear()
             diction_list = []
@@ -145,16 +150,20 @@ class Rouge:
 
             print(f"{active_notes}\n")
 
-            # need to add multithreading to prevent this process hindering the loop speed
-            active_buffer_timer = [i for i in self.timer_buffer if isinstance(i, int)]
+            if is_pressed('alt'):
+                self.transformative.finish_song()
+                break
+
+            active_buffer_timer = [i for i in self.timer_buffer if isinstance(i, float)]
             if len(active_buffer_timer) > 0:
-                active_buffer_keys = [i[0] for i in active_notes]
+                active_buffer_keys = [i for i in self.key_buffer if isinstance(i, int)]
                 for i in range(len(active_buffer_keys)):
                     temp_dict = {"key": active_buffer_keys[i],
                                  "velocity": 63,
                                  "duration": active_buffer_timer[i]}
                     diction_list.append(temp_dict)
                 self.transformative.apply_notes(diction_list)
+
         # self.vst()
 
     def detection_line(self):
@@ -180,6 +189,7 @@ class Rouge:
         if self.live_keyboard[i][1] == 1:
             self.key_ending_timer[i * 2 + 1] = time.time()
             print(f"note {self.live_keyboard[i][0]} has ended...\n")
+            self.key_buffer[i * 2 + 1] = 1
             self.timer_buffer[i * 2 + 1] = self.key_ending_timer[i * 2 + 1]-self.key_starting_timer[i * 2 + 1]
             print("--- %s seconds ---" % {self.timer_buffer[i * 2 + 1]})
         self.live_keyboard[i][1] = 0
