@@ -151,7 +151,7 @@ class Rouge:
                 active_buffer_keys = [i[0] for i in active_notes]
                 for i in range(len(active_buffer_keys)):
                     temp_dict = {"key": active_buffer_keys[i],
-                                 "velocity": 3,
+                                 "velocity": 63,
                                  "duration": active_buffer_timer[i]}
                     diction_list.append(temp_dict)
                 self.transformative.apply_notes(diction_list)
