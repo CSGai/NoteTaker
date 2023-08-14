@@ -67,7 +67,7 @@ class Rouge:
         ["F7", None], ["F#7", None], ["G7", None], ["G#7", None],
         ["A7", None], ["A#7", None], ["B7", None], ["C8", None]
     ]
-    key_starting_timer = [
+    og_map = [
         "A0", None, "A#0", None, "B0", None, "C1", None, "C#1", None, "D1", None, "D#1", None,
         "E1", None, "F1", None, "F#1", None, "G1", None, "G#1", None,
         "A1", None, "A#1", None, "B1", None, "C2", None, "C#2", None, "D2", None, "D#2", None,
@@ -84,10 +84,13 @@ class Rouge:
         "E7", None, "F7", None, "F#7", None, "G7", None, "G#7", None,
         "A7", None, "A#7", None, "B7", None, "C8", None
     ]
+    key_starting_timer = og_map.copy()
     key_ending_timer = key_starting_timer.copy()
-    # song_name = input(print("input song name: "))
-    song_name = "test"
+    timer_buffer = og_map.copy()
+
+    song_name = input(print("input song name: "))
     song_name = song_name + ".mid"
+
     monitor_width, monitor_height = get_monitor(0)
     transformative = Converter(song_name)
     screen_grabber = Paparatsy(0, 0, monitor_width, monitor_height, 1)
@@ -129,10 +132,29 @@ class Rouge:
         self.timer_initiated = time.time()
 
     def main(self):
+        active_buffer_keys = []
+        active_buffer_timer = []
         while True:
+            self.timer_buffer = self.og_map
+            active_buffer_keys.clear()
+            active_buffer_timer.clear()
+            diction_list = []
+
             self.segment_grabber.screengrab()
             active_notes = self.detection_line()
+
             print(f"{active_notes}\n")
+
+            # need to add multithreading to prevent this process hindering the loop speed
+            active_buffer_timer = [i for i in self.timer_buffer if isinstance(i, int)]
+            if len(active_buffer_timer) > 0:
+                active_buffer_keys = [i[0] for i in active_notes]
+                for i in range(len(active_buffer_keys)):
+                    temp_dict = {"key": active_buffer_keys[i],
+                                 "velocity": 3,
+                                 "duration": active_buffer_timer[i]}
+                    diction_list.append(temp_dict)
+                self.transformative.apply_notes(diction_list)
         # self.vst()
 
     def detection_line(self):
@@ -152,13 +174,14 @@ class Rouge:
                 if self.detect_gsv_change((((self.pixel_collection[i] + self.safety_margine), self.scan_line_y),
                                            self.sub_base_line[2 * i + 1])) == 1:
                     if self.live_keyboard[i][1] == 0:
-                        self.key_starting_timer[i*2] = time.time()
+                        self.key_starting_timer[i * 2 + 1] = time.time()
                     self.live_keyboard[i][1] = 1
                     return
         if self.live_keyboard[i][1] == 1:
-            self.key_ending_timer[i * 2] = time.time()
+            self.key_ending_timer[i * 2 + 1] = time.time()
             print(f"note {self.live_keyboard[i][0]} has ended...\n")
-            print("--- %s seconds ---" % {self.key_ending_timer[i*2]-self.key_starting_timer[i*2]})
+            self.timer_buffer[i * 2 + 1] = self.key_ending_timer[i * 2 + 1]-self.key_starting_timer[i * 2 + 1]
+            print("--- %s seconds ---" % {self.timer_buffer[i * 2 + 1]})
         self.live_keyboard[i][1] = 0
 
     def detect_gsv_change(self, base_line_item, threshold=35):
