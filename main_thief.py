@@ -27,7 +27,6 @@ import time
 from keyboard import is_pressed
 
 
-
 class Rouge:
     # List of all black notes on the piano and their starting locations
     black_notes = ["A#0", "C#1", "D#1", "F#1", "G#1",
@@ -109,7 +108,7 @@ class Rouge:
         self.keyboard_width = keyboard_width
 
         self.sub_base_line = []
-        self.safety_margine = 9
+        self.safety_margine = 10
 
         white_layer, black_layer, repeating_pattern = self.key_layering()
         self.white_layer = white_layer
@@ -176,16 +175,14 @@ class Rouge:
 
         if self.live_keyboard[i][1] == 1:
             self.key_ending_timer[i * 2 + 1] = time.time()
-            print(f"note {self.live_keyboard[i][0]} has ended...\n")
 
             self.timer_buffer[i * 2 + 1] = self.key_ending_timer[i * 2 + 1]-self.key_starting_timer[i * 2 + 1]
 
             temp_dict = {"key": self.live_keyboard[i][0],
-                         "time": self.key_starting_timer[i * 2 + 1],
+                         "time": self.key_starting_timer[i * 2 + 1] - self.timer_initiated,
                          "duration": self.timer_buffer[i * 2 + 1]}
             self.transformative.apply_notes(temp_dict)
 
-            print("--- %s seconds ---" % {self.timer_buffer[i * 2 + 1]})
         self.live_keyboard[i][1] = 0
 
     def detect_gsv_change(self, base_line_item, threshold=35):

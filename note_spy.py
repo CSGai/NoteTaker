@@ -118,6 +118,7 @@ class Converter:
         pitch = self.piano_notes_midi_dict[note_dict['key']]
         duration = note_dict['duration']
         time = note_dict['time']
+        print(note_dict)
         self.mf.addNote(self.track, channel, pitch, time, duration, volume)
 
     def finish_song(self):
