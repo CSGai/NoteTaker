@@ -3,8 +3,7 @@ import numpy
 import screeninfo
 from pynput import keyboard, mouse
 from mss import mss
-from mido.midifiles import MidiFile, MidiTrack, MetaMessage, bpm2tempo
-from mido.messages import Message
+from midiutil.MidiFile import MIDIFile
 
 
 def get_monitor(mon_num, primary=True):
@@ -104,31 +103,25 @@ class Converter:
 
     def __init__(self):
         song_name = input()
-        song_name = song_name + ".mid"
+        self.song_name = song_name + ".mid"
 
         tempo = int(input())
-        tempo = bpm2tempo(tempo)
+        self.mf = MIDIFile(1)  # only 1 track
+        self.track = 0  # the only track
 
-        self.output_file = song_name
-        self.midi_file = MidiFile(type=0)
-
-        self.track = MidiTrack()
-        self.midi_file.tracks.append(self.track)
-        self.track.append(MetaMessage('set_tempo', tempo=tempo))
+        time = 0  # start at the beginning
+        self.mf.addTrackName(self.track, time, "Sample Track")
+        self.mf.addTempo(self.track, time, tempo)
 
     def apply_notes(self, note_dict):
-        for note in note_dict:
-            key = note['key']
-            velocity = note['velocity']
-            seconds = note['duration']
-
-            note_number = self.piano_notes_midi_dict[f'{key}']
-            duration = int(seconds * self.ticks_per_beat)
-
-            self.track.append(Message('note_on', note=note_number, velocity=velocity))
-            self.track.append(Message('note_off', note=note_number, velocity=0, time=duration))
-            print(f"appended {note_number}, for duration: {duration}, correctly")
+        channel = 0
+        volume = 100
+        pitch = self.piano_notes_midi_dict[note_dict['key']]
+        duration = note_dict['duration']
+        time = note_dict['time']
+        self.mf.addNote(self.track, channel, pitch, time, duration, volume)
 
     def finish_song(self):
         print("finished song")
-        self.midi_file.save(self.output_file)
+        with open(f"{self.song_name}", 'wb') as outf:
+            self.mf.writeFile(outf)

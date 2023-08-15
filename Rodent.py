@@ -1,6 +1,5 @@
 from note_spy import Paparatsy, get_monitor
-from mido.midifiles import MidiFile, MidiTrack, MetaMessage
-from mido.messages import Message
+from midiutil.MidiFile import MIDIFile
 
 # monitor_width, monitor_height = get_monitor(2)
 # screen_grabber = Paparatsy(0, 0, monitor_width, monitor_height, 3)
@@ -25,6 +24,7 @@ piano_notes_midi_dict = {
 }
 ticks_per_beat = 480
 
+
 # def main():
 #     keyboard_height, keyboard_width = keyboard_getter()
 #     print(f"keyboard height {keyboard_height}")
@@ -42,14 +42,22 @@ ticks_per_beat = 480
 #     keyboard_height = abs(coordinates[1] - coordinates[3])
 #     return keyboard_height, keyboard_width
 
+midi_message_queue = []
+
 
 def main():
     output_file = input()
     output_file += ".mid"
-    midi_file = MidiFile(type=0)
-    track = MidiTrack()
-    midi_file.tracks.append(track)
-    track.append(MetaMessage('set_tempo', tempo=500000))
+    song_name = input()
+    song_name = song_name + ".mid"
+
+    tempo = int(input())
+    mf = MIDIFile(1)  # only 1 track
+    track = 0  # the only track
+
+    time = 0  # start at the beginning
+    mf.addTrackName(track, time, "Sample Track")
+    mf.addTempo(track, time, tempo)
 
     note_dict = [{'key': 'A4',
                   'velocity': 64,
@@ -60,28 +68,13 @@ def main():
                   'duration': 2
                   }
                  ]
-    for note in note_dict:
-        key = note['key']
-        velocity = note['velocity']
-        seconds = note['duration']
 
-        note_number = piano_notes_midi_dict[f'{key}']
-        duration = int(seconds * ticks_per_beat)
-
-        track.append(Message('note_on', note=note_number,  velocity=velocity))
-        print(f"{note_number}, {duration} correctly")
-
-    for note in note_dict:
-        key = note['key']
-        velocity = note['velocity']
-        seconds = note['duration']
-        print("test")
-        note_number = piano_notes_midi_dict[f'{key}']
-        duration = int(seconds * ticks_per_beat)
-        track.append(Message('note_off', note=note_number, velocity=0, time=duration))
+    channel = 0
+    volume = 100
 
     print("finished song")
-    midi_file.save(output_file)
+    with open(f"{song_name}", 'wb') as outf:
+        mf.writeFile(outf)
 
 # class Converter:
 #     piano_notes_midi_dict = {

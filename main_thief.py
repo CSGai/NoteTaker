@@ -11,12 +11,12 @@
 # just because I'm automating it doesn't make it less legal.
 ########################################################################################################################
 
-# credits: Yahav also helped <3
+# credits:
+# 0. Johnathan BIG save with the midi conversion advice
+# 1. Yahav also helped <3
 
-# Fix midi conversion logic (can use direct piano to midi logic)
-# Fix cord logic (track append)
-# Fix note duration (could be because of cord logic
 
+# final thing to add: have loop a key up press to prevent video from darkening
 
 from note_spy import *
 from cv2 import waitKey
@@ -137,10 +137,6 @@ class Rouge:
     def main(self):
         while True:
 
-            active_buffer_keys = []
-            active_buffer_timer = []
-            diction_list = []
-
             self.timer_buffer = self.og_map.copy()
             self.key_buffer = self.og_map.copy()
 
@@ -152,20 +148,6 @@ class Rouge:
             if is_pressed('alt'):
                 self.transformative.finish_song()
                 break
-
-            active_buffer_timer = [i for i in self.timer_buffer if isinstance(i, float)]
-            print(active_buffer_timer)
-            if len(active_buffer_timer) > 0:
-                for i in range(len(self.key_buffer)):
-                    if isinstance(self.key_buffer[i], int):
-                        active_buffer_keys.append(self.key_buffer[i-1])
-                for i in range(len(active_buffer_keys)):
-                    temp_dict = {"key": active_buffer_keys[i],
-                                 "velocity": 63,
-                                 "duration": active_buffer_timer[i]}
-                    diction_list.append(temp_dict)
-                self.transformative.apply_notes(diction_list)
-                print("appended")
 
         # self.vst()
 
@@ -189,11 +171,18 @@ class Rouge:
                         self.key_starting_timer[i * 2 + 1] = time.time()
                     self.live_keyboard[i][1] = 1
                     return
+
         if self.live_keyboard[i][1] == 1:
             self.key_ending_timer[i * 2 + 1] = time.time()
             print(f"note {self.live_keyboard[i][0]} has ended...\n")
-            self.key_buffer[i * 2 + 1] = 1
+
             self.timer_buffer[i * 2 + 1] = self.key_ending_timer[i * 2 + 1]-self.key_starting_timer[i * 2 + 1]
+
+            temp_dict = {"key": self.live_keyboard[i][0],
+                         "time": self.key_starting_timer[i * 2 + 1],
+                         "duration": self.timer_buffer[i * 2 + 1]}
+            self.transformative.apply_notes(temp_dict)
+
             print("--- %s seconds ---" % {self.timer_buffer[i * 2 + 1]})
         self.live_keyboard[i][1] = 0
 
