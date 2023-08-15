@@ -24,7 +24,6 @@ piano_notes_midi_dict = {
 }
 ticks_per_beat = 480
 
-
 # def main():
 #     keyboard_height, keyboard_width = keyboard_getter()
 #     print(f"keyboard height {keyboard_height}")

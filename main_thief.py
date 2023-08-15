@@ -25,7 +25,7 @@ from cv2 import waitKey
 from concurrent.futures import ThreadPoolExecutor
 import time
 from keyboard import is_pressed
-from threading import Thread
+
 
 
 class Rouge:
