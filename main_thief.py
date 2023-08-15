@@ -11,15 +11,21 @@
 # just because I'm automating it doesn't make it less legal.
 ########################################################################################################################
 
-# credits: Yahav also helped <3
+# credits:
+# 0. Johnathan BIG save with the midi conversion advice
+# 1. Yahav also helped <3
 
-# no need for timer because of midi writing structure
 
+# final thing to add: have loop a key up press to prevent video from darkening
+# Fix small overlapping when tempo isn't accurate
+# Fix minor track errors
 
 from note_spy import *
 from cv2 import waitKey
 from concurrent.futures import ThreadPoolExecutor
 import time
+from keyboard import is_pressed
+from threading import Thread
 
 
 class Rouge:
@@ -67,7 +73,7 @@ class Rouge:
         ["F7", None], ["F#7", None], ["G7", None], ["G#7", None],
         ["A7", None], ["A#7", None], ["B7", None], ["C8", None]
     ]
-    key_starting_tracker = [
+    og_map = [
         "A0", None, "A#0", None, "B0", None, "C1", None, "C#1", None, "D1", None, "D#1", None,
         "E1", None, "F1", None, "F#1", None, "G1", None, "G#1", None,
         "A1", None, "A#1", None, "B1", None, "C2", None, "C#2", None, "D2", None, "D#2", None,
@@ -84,15 +90,21 @@ class Rouge:
         "E7", None, "F7", None, "F#7", None, "G7", None, "G#7", None,
         "A7", None, "A#7", None, "B7", None, "C8", None
     ]
-    key_ending_tracker = key_starting_tracker.copy()
+    key_starting_timer = og_map.copy()
+    key_ending_timer = key_starting_timer.copy()
+    timer_buffer = og_map.copy()
+    key_buffer = og_map.copy()
 
     monitor_width, monitor_height = get_monitor(0)
+    transformative = Converter()
     screen_grabber = Paparatsy(0, 0, monitor_width, monitor_height, 1)
 
     def __init__(self):
+        self.scrible = None
         keyboard_height, keyboard_width, self.keyboard_coordinates = self.keyboard_getter()
         self.starting_x_val = abs(self.keyboard_coordinates[0])
         # self.starting_x_val = 0
+
         self.keyboard_height = keyboard_height
         self.keyboard_width = keyboard_width
 
@@ -122,13 +134,23 @@ class Rouge:
 
         self.segment_grabber = Paparatsy(0, self.scan_line_y, self.monitor_width, 1)
 
+        self.timer_initiated = time.time()
+
+    def main(self):
         while True:
-            self.timer_initiated = time.time()
+
+            self.timer_buffer = self.og_map.copy()
+            self.key_buffer = self.og_map.copy()
+
             self.segment_grabber.screengrab()
-            self.detection_line()
-            active_notes = [i for i in self.live_keyboard if i[1] == 1]
+            active_notes = self.detection_line()
+
             print(f"{active_notes}\n")
-            print(time.time() - self.timer_initiated)
+
+            if is_pressed('alt'):
+                self.transformative.finish_song()
+                break
+
         # self.vst()
 
     def detection_line(self):
@@ -138,18 +160,32 @@ class Rouge:
             futures = [tpe.submit(self.false_positive_protection, i, detected_changes)
                        for i in range(len(detected_changes))]
 
+        active_notes = [i for i in self.live_keyboard if i[1] == 1]
+        return active_notes
+
     def false_positive_protection(self, i, detected_changes):
         if detected_changes[i] == 1:
             if self.detect_gsv_change((((self.pixel_collection[i] - self.safety_margine), self.scan_line_y),
                                        self.sub_base_line[2 * i])) == 1:
                 if self.detect_gsv_change((((self.pixel_collection[i] + self.safety_margine), self.scan_line_y),
                                            self.sub_base_line[2 * i + 1])) == 1:
+                    if self.live_keyboard[i][1] == 0:
+                        self.key_starting_timer[i * 2 + 1] = time.time()
                     self.live_keyboard[i][1] = 1
-                    # self.key_starting_tracker[i * 2] = time.time()
                     return
+
         if self.live_keyboard[i][1] == 1:
-            pass
-            # self.key_ending_tracker[i * 2] = time.time()
+            self.key_ending_timer[i * 2 + 1] = time.time()
+            print(f"note {self.live_keyboard[i][0]} has ended...\n")
+
+            self.timer_buffer[i * 2 + 1] = self.key_ending_timer[i * 2 + 1]-self.key_starting_timer[i * 2 + 1]
+
+            temp_dict = {"key": self.live_keyboard[i][0],
+                         "time": self.key_starting_timer[i * 2 + 1],
+                         "duration": self.timer_buffer[i * 2 + 1]}
+            self.transformative.apply_notes(temp_dict)
+
+            print("--- %s seconds ---" % {self.timer_buffer[i * 2 + 1]})
         self.live_keyboard[i][1] = 0
 
     def detect_gsv_change(self, base_line_item, threshold=35):
@@ -235,3 +271,4 @@ class Rouge:
 
 
 test = Rouge()
+test.main()
