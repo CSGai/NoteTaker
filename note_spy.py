@@ -125,8 +125,8 @@ class Converter:
             note_number = self.piano_notes_midi_dict[f'{key}']
             duration = int(seconds * self.ticks_per_beat)
 
-            self.track.append(Message('note_on', note=note_number, velocity=velocity, time=duration))
-            self.track.append(Message('note_off', note=note_number, velocity=0))
+            self.track.append(Message('note_on', note=note_number, velocity=velocity))
+            self.track.append(Message('note_off', note=note_number, velocity=0, time=duration))
             print(f"appended {note_number}, for duration: {duration}, correctly")
 
     def finish_song(self):

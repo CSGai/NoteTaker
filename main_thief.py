@@ -13,7 +13,9 @@
 
 # credits: Yahav also helped <3
 
-# no need for timer because of midi writing structure
+# Fix midi conversion logic (can use direct piano to midi logic)
+# Fix cord logic (track append)
+# Fix note duration (could be because of cord logic
 
 
 from note_spy import *

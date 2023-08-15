@@ -68,9 +68,17 @@ def main():
         note_number = piano_notes_midi_dict[f'{key}']
         duration = int(seconds * ticks_per_beat)
 
-        track.append(Message('note_on', note=note_number, velocity=velocity, time=duration))
-        track.append(Message('note_off', note=note_number, velocity=0))
+        track.append(Message('note_on', note=note_number,  velocity=velocity))
         print(f"{note_number}, {duration} correctly")
+
+    for note in note_dict:
+        key = note['key']
+        velocity = note['velocity']
+        seconds = note['duration']
+        print("test")
+        note_number = piano_notes_midi_dict[f'{key}']
+        duration = int(seconds * ticks_per_beat)
+        track.append(Message('note_off', note=note_number, velocity=0, time=duration))
 
     print("finished song")
     midi_file.save(output_file)
