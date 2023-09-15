@@ -28,6 +28,10 @@ from keyboard import is_pressed
 
 
 class Rouge:
+
+    threshold1 = 10
+    threshold2 = 35
+    threshold = threshold1
     # List of all black notes on the piano and their starting locations
     black_notes = ["A#0", "C#1", "D#1", "F#1", "G#1",
                    "A#1", "C#2", "D#2", "F#2", "G#2",
@@ -185,7 +189,8 @@ class Rouge:
 
         self.live_keyboard[i][1] = 0
 
-    def detect_gsv_change(self, base_line_item, threshold=35):
+    def detect_gsv_change(self, base_line_item):
+        threshold = self.threshold
         x, y = base_line_item[0]
         base_item_pixel = base_line_item[1]
         pixel_color_value = self.segment_grabber.grab_pixel(x, 0)

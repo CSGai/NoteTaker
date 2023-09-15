@@ -5,6 +5,7 @@ from pynput import keyboard, mouse
 from mss import mss
 from midiutil.MidiFile import MIDIFile
 
+
 def get_monitor(mon_num, primary=True):
     monitors = screeninfo.get_monitors()
     target_monitor = monitors[mon_num]
