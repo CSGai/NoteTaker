@@ -140,7 +140,7 @@ class Rouge:
         self.timer_initiated = time.time()
 
     def main(self):
-        self.vst()
+        # self.vst()
         while True:
 
             self.timer_buffer = self.og_map.copy()
@@ -167,13 +167,24 @@ class Rouge:
 
     def false_positive_protection(self, i, detected_changes):
         # key color => key
+        key = ""
+
         left_gsv = self.detect_gsv_change((((self.pixel_collection[i] - self.safety_margine), self.scan_line_y),
                                            self.sub_base_line[2 * i]))
         right_gsv = self.detect_gsv_change((((self.pixel_collection[i] + self.safety_margine), self.scan_line_y),
                                            self.sub_base_line[2 * i + 1]))
+        if '#' in self.live_keyboard[i][0]:
+            key = "black"
+        else:
+            key = "white"
         if detected_changes[i] == 1:
-            if right_gsv == 1 and left_gsv == 1:
-                #  key is black
+            if key == "black":
+                if right_gsv == 1 and left_gsv == 1:
+                    if self.live_keyboard[i][1] == 0:
+                        self.key_starting_timer[i * 2 + 1] = time.time()
+                    self.live_keyboard[i][1] = 1
+                    return
+            if key == "white":
                 if self.live_keyboard[i][1] == 0:
                     self.key_starting_timer[i * 2 + 1] = time.time()
                 self.live_keyboard[i][1] = 1
