@@ -31,7 +31,7 @@ class Rouge:
 
     threshold1 = 10
     threshold2 = 35
-    threshold = threshold1
+    threshold = threshold2
     # List of all black notes on the piano and their starting locations
     black_notes = ["A#0", "C#1", "D#1", "F#1", "G#1",
                    "A#1", "C#2", "D#2", "F#2", "G#2",
@@ -140,6 +140,7 @@ class Rouge:
         self.timer_initiated = time.time()
 
     def main(self):
+        # self.vst()
         while True:
 
             self.timer_buffer = self.og_map.copy()
@@ -153,8 +154,6 @@ class Rouge:
             if is_pressed('alt'):
                 self.transformative.finish_song()
                 break
-
-        # self.vst()
 
     def detection_line(self):
         # checks for a gsv change in the detection line

@@ -102,9 +102,11 @@ class Converter:
     ticks_per_beat = 480
 
     def __init__(self):
+        print("input song name:")
         song_name = input()
         self.song_name = song_name + ".mid"
 
+        print("\ninput song tempo:")
         tempo = int(input())
         self.mf = MIDIFile(1)  # only 1 track
         self.track = 0  # the only track
