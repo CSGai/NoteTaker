@@ -31,7 +31,7 @@ class Rouge:
 
     threshold1 = 10
     threshold2 = 35
-    threshold = threshold2
+    threshold = threshold1
     # List of all black notes on the piano and their starting locations
     black_notes = ["A#0", "C#1", "D#1", "F#1", "G#1",
                    "A#1", "C#2", "D#2", "F#2", "G#2",
