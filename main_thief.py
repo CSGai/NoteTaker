@@ -140,7 +140,7 @@ class Rouge:
         self.timer_initiated = time.time()
 
     def main(self):
-        # self.vst()
+        self.vst()
         while True:
 
             self.timer_buffer = self.og_map.copy()
@@ -166,15 +166,18 @@ class Rouge:
         return active_notes
 
     def false_positive_protection(self, i, detected_changes):
+        # key color => key
+        left_gsv = self.detect_gsv_change((((self.pixel_collection[i] - self.safety_margine), self.scan_line_y),
+                                           self.sub_base_line[2 * i]))
+        right_gsv = self.detect_gsv_change((((self.pixel_collection[i] + self.safety_margine), self.scan_line_y),
+                                           self.sub_base_line[2 * i + 1]))
         if detected_changes[i] == 1:
-            if self.detect_gsv_change((((self.pixel_collection[i] - self.safety_margine), self.scan_line_y),
-                                       self.sub_base_line[2 * i])) == 1:
-                if self.detect_gsv_change((((self.pixel_collection[i] + self.safety_margine), self.scan_line_y),
-                                           self.sub_base_line[2 * i + 1])) == 1:
-                    if self.live_keyboard[i][1] == 0:
-                        self.key_starting_timer[i * 2 + 1] = time.time()
-                    self.live_keyboard[i][1] = 1
-                    return
+            if right_gsv == 1 and left_gsv == 1:
+                #  key is black
+                if self.live_keyboard[i][1] == 0:
+                    self.key_starting_timer[i * 2 + 1] = time.time()
+                self.live_keyboard[i][1] = 1
+                return
 
         if self.live_keyboard[i][1] == 1:
             self.key_ending_timer[i * 2 + 1] = time.time()
@@ -210,7 +213,7 @@ class Rouge:
 
         white_starting_coords = {"A0": self.starting_x_val + self.rbr(22), "B0": self.starting_x_val + self.rbr(74),
                                  "C1": self.starting_x_val + self.rbr(120), "D1": self.starting_x_val + self.rbr(171),
-                                 "E1": self.starting_x_val + self.rbr(222), "F1": self.starting_x_val + self.rbr(268),
+                                 "E1": self.starting_x_val + self.rbr(222), "F1": self.starting_x_val + self.rbr(264),
                                  "G1": self.starting_x_val + self.rbr(319)}
 
         for i in range(7, len(self.white_notes)):
