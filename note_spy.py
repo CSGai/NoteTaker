@@ -14,6 +14,7 @@ def get_monitor(mon_num, primary=True):
 
 class Paparatsy:
     def __init__(self, top_left_x, top_left_y_from_top, width, height, monitor_number=1):
+        self.contasted_screenshot = None
         self.mouse_coords = None
         self.listener = None
         self.k_listener = None
@@ -37,6 +38,7 @@ class Paparatsy:
             if grayscale:
                 self.screenshot = cv2.cvtColor(self.screenshot, cv2.COLOR_BGRA2GRAY)
 
+
     def screen_save(self):
         cv2.imwrite('screenshots/image.jpg', self.screenshot)
 
@@ -54,8 +56,43 @@ class Paparatsy:
         cv2.imshow("Display", img)
         cv2.waitKey(1)
 
+    def thresholder(self, key_chart, scan_line):
+
+        selfie_line = self.screenshot_segment(key_chart[0], scan_line, key_chart[2], scan_line + 2)
+
+        while True:
+            contour_list = []
+
+            _, thresh = cv2.threshold(selfie_line, 127, 255, cv2.THRESH_BINARY)
+            contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+            for contour in contours:
+                m = cv2.moments(contour)
+                if m["m00"] != 0:
+                    cx = int(m["m10"] / m["m00"])
+                    contour_list.append(cx)
+
+            if len(contour_list) < 52:
+                selfie_line = self.adjust_brightness(selfie_line, 4)
+            if len(contour_list) == 52:
+                break
+
+        return contour_list
+
     def grab_pixel(self, y_val, x_val):
+        screenshot = self.screenshot
+        if y_val > 2559:
+            y_val = 2559
         return self.screenshot[x_val][y_val]
+
+    @staticmethod
+    def adjust_brightness(img, gamma=1.0):
+        # Apply gamma correction to lower brightness
+        gamma_corrected = numpy.power(img / 255.0, gamma) * 255.0
+        return gamma_corrected.astype(numpy.uint8)
+
+    def add_contrast(self, added_contrast):
+        self.screenshot = cv2.convertScaleAbs(self.screenshot, alpha=added_contrast)
 
     def screenshot_segment(self, top_left_x, top_left_y, bot_right_x, bot_right_y):
         segment = self.screenshot[top_left_y:bot_right_y, top_left_x:bot_right_x]

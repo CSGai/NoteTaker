@@ -1,6 +1,7 @@
-from note_spy import Paparatsy, get_monitor
+#  from note_spy import Paparatsy, get_monitor
 from midiutil.MidiFile import MIDIFile
-
+from main_thief import *
+from note_spy import *
 # monitor_width, monitor_height = get_monitor(2)
 # screen_grabber = Paparatsy(0, 0, monitor_width, monitor_height, 3)
 
@@ -41,39 +42,43 @@ ticks_per_beat = 480
 #     keyboard_height = abs(coordinates[1] - coordinates[3])
 #     return keyboard_height, keyboard_width
 
-midi_message_queue = []
+# midi_message_queue = []
+monitor_width, monitor_height = get_monitor(0)
+screen_grabber = Paparatsy(0, 0, monitor_width, monitor_height, 1)
 
 
 def main():
-    output_file = input()
-    output_file += ".mid"
-    song_name = input()
-    song_name = song_name + ".mid"
-
-    tempo = int(input())
-    mf = MIDIFile(1)  # only 1 track
-    track = 0  # the only track
-
-    time = 0  # start at the beginning
-    mf.addTrackName(track, time, "Sample Track")
-    mf.addTempo(track, time, tempo)
-
-    note_dict = [{'key': 'A4',
-                  'velocity': 64,
-                  'duration': 2
-                  },
-                 {'key': 'A5',
-                  'velocity': 64,
-                  'duration': 2
-                  }
-                 ]
-
-    channel = 0
-    volume = 100
-
-    print("finished song")
-    with open(f"{song_name}", 'wb') as outf:
-        mf.writeFile(outf)
+    pass
+# def main():
+#     output_file = input()
+#     output_file += ".mid"
+#     song_name = input()
+#     song_name = song_name + ".mid"
+#
+#     tempo = int(input())
+#     mf = MIDIFile(1)  # only 1 track
+#     track = 0  # the only track
+#
+#     time = 0  # start at the beginning
+#     mf.addTrackName(track, time, "Sample Track")
+#     mf.addTempo(track, time, tempo)
+#
+#     note_dict = [{'key': 'A4',
+#                   'velocity': 64,
+#                   'duration': 2
+#                   },
+#                  {'key': 'A5',
+#                   'velocity': 64,
+#                   'duration': 2
+#                   }
+#                  ]
+#
+#     channel = 0
+#     volume = 100
+#
+#     print("finished song")
+#     with open(f"{song_name}", 'wb') as outf:
+#         mf.writeFile(outf)
 
 # class Converter:
 #     piano_notes_midi_dict = {
