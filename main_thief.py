@@ -105,7 +105,7 @@ class Rouge:
         self.test = None
         self.scrible = None
 
-        self.keyboard_height, self.keyboard_width, self.keyboard_coordinates = self.keyboard_getter()
+        self.keyboard_height, self.keyboard_width, self.keyboard_coordinates = self.screen_grabber.keyboard_getter()
 
         self.screen_grabber.screengrab()
         _, self.scan_line_y = self.screen_grabber.get_mouse_coordinates()
@@ -128,6 +128,7 @@ class Rouge:
         keyboard_collection.update(black_layer)
 
         pixel_collection = sorted(keyboard_collection.values())
+        print(pixel_collection)
         self.pixel_collection = pixel_collection
 
         self.base_line = [((i, self.scan_line_y), self.screen_grabber.grab_pixel(i, self.scan_line_y)) for i in
@@ -140,7 +141,7 @@ class Rouge:
         self.timer_initiated = time.time()
 
     def main(self):
-        self.vst()
+        #  self.vst()
         while True:
 
             self.timer_buffer = self.og_map.copy()
@@ -159,7 +160,7 @@ class Rouge:
         # checks for a gsv change in the detection line
         with ThreadPoolExecutor() as tpe:
             detected_changes = list(tpe.map(self.detect_gsv_change, self.base_line))
-            futures = [tpe.submit(self.false_positive_protection, i, detected_changes)
+            [tpe.submit(self.false_positive_protection, i, detected_changes)
                        for i in range(len(detected_changes))]
 
         active_notes = [i for i in self.live_keyboard if i[1] == 1]
@@ -207,42 +208,24 @@ class Rouge:
         self.live_keyboard[i][1] = 0
 
     def key_layering(self):
-        # for tests
-
-        # black_starting_coords = {"A#0": self.starting_x_val + self.rbr(52), "C#1": self.starting_x_val + self.rbr(
-        # 143), "D#1": self.starting_x_val + self.rbr(198), "F#1": self.starting_x_val + self.rbr(288),
-        # "G#1": self.starting_x_val + self.rbr(343)}
-        #
-        # white_starting_coords = {"A0": self.starting_x_val + self.rbr(22), "B0": self.starting_x_val + self.rbr(74),
-        #                          "C1": self.starting_x_val + self.rbr(120), "D1": self.starting_x_val + self.rbr(171),
-        #                          "E1": self.starting_x_val + self.rbr(222), "F1": self.starting_x_val + self.rbr(264),
-        #                          "G1": self.starting_x_val + self.rbr(319)}
-        #
-        # for i in range(7, len(self.white_notes)):
-        #     white_starting_coords[self.white_notes[i]] = white_starting_coords[self.white_notes[i - 7]] \
-        #                                                  + self.rbr(346)
-        # for i in range(5, len(self.black_notes)):
-        #     black_starting_coords[self.black_notes[i]] = black_starting_coords[self.black_notes[i - 5]] \
-        #                                                  + self.rbr(346)
-
-        #  return white_starting_coords, black_starting_coords, repeating_note_pattern
-        # repeating_note_pattern = self.rbr(350)
 
         scan_line = self.scan_line_y
-        kb_w = self.keyboard_width
         thresh = 100
+
         white_line = []
         black_line = []
+
+        white_notes = self.white_notes
+        black_notes = self.black_notes
 
         white_starting_coords = {}
         black_starting_coords = {}
 
-        gsv_diff, gsv_diff_b = 0, 0
-
         dupe_prot = 0
-        dupe_prot2 = 0
+
         stv = self.starting_x_val
-        stv = 0
+        # stv = 0
+        print("starting key layering process...")
         key_journal = [int(self.screen_grabber.grab_pixel(i, scan_line)) for i in
                        range(self.keyboard_coordinates[0], self.keyboard_coordinates[2], 1)]
 
@@ -257,13 +240,19 @@ class Rouge:
 
         black_line = [i-13 for i in black_line]
         white_line = self.screen_grabber.thresholder(self.keyboard_coordinates, scan_line)
+        white_line = [self.starting_x_val + i for i in white_line]
 
         print(len(black_line), len(white_line))
         print(f"black line: {black_line}")
         print(f"white line: {white_line}")
-        self.test = black_line
-        self.tests = white_line
-        return {}, {}
+
+        white_starting_coords = dict(map(lambda i, j: (i, j), white_notes, white_line))
+        black_starting_coords = dict(map(lambda i, j: (i, j), black_notes, black_line))
+
+        print(f"{white_starting_coords}\n {black_starting_coords}")
+        #  self.test = black_line
+        #  self.tests = white_line
+        return white_starting_coords, black_starting_coords
 
     def detect_gsv_change(self, base_line_item):
         threshold = self.threshold
@@ -277,17 +266,6 @@ class Rouge:
             return 0
 
     # for testing purposes
-    def keyboard_getter(self):
-        coordinates = []
-        for i in range(2):
-            x, y = self.screen_grabber.get_mouse_coordinates()
-            coordinates.append(x)
-            coordinates.append(y)
-            print(f"mouse position: {x}, {y}")
-
-        keyboard_width = abs(coordinates[0] - coordinates[2])
-        keyboard_height = abs(coordinates[1] - coordinates[3])
-        return keyboard_height, keyboard_width, coordinates
 
     def rbr(self, key_location):  # ratio based resizer
         kb_width = self.keyboard_width
@@ -301,11 +279,6 @@ class Rouge:
         segment_bot_right_x, segment_bot_right_y = self.keyboard_coordinates[2], self.keyboard_coordinates[3]
         segment = self.screen_grabber.screenshot_segment(segment_top_left_x, segment_top_left_y,
                                                          segment_bot_right_x, segment_bot_right_y)
-        height, width = segment.shape
-        # for x in self.sub_base_line:
-        #     start_point = (int(x), 0)
-        #     end_point = (int(x), height)
-        #     cv2.line(segment, start_point, end_point, (100, 100, 100), 1)
         self.screen_grabber.display_setup(2, 200, 200)
         self.draw_lines_from_top_to_bottom(segment, self.white_layer, (200, 60, 255))
         self.draw_lines_from_top_to_bottom(segment, self.black_layer, (50, 100, 255))

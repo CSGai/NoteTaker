@@ -38,7 +38,6 @@ class Paparatsy:
             if grayscale:
                 self.screenshot = cv2.cvtColor(self.screenshot, cv2.COLOR_BGRA2GRAY)
 
-
     def screen_save(self):
         cv2.imwrite('screenshots/image.jpg', self.screenshot)
 
@@ -57,30 +56,41 @@ class Paparatsy:
         cv2.waitKey(1)
 
     def thresholder(self, key_chart, scan_line):
-
-        selfie_line = self.screenshot_segment(key_chart[0], scan_line, key_chart[2], scan_line + 2)
-
         while True:
+            selfie_line = self.screenshot_segment(key_chart[0], scan_line, key_chart[2], scan_line + 2)
             contour_list = []
+            for i in range(10):
 
-            _, thresh = cv2.threshold(selfie_line, 127, 255, cv2.THRESH_BINARY)
-            contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                _, thresh = cv2.threshold(selfie_line, 127, 255, cv2.THRESH_BINARY)
+                contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-            for contour in contours:
-                m = cv2.moments(contour)
-                if m["m00"] != 0:
-                    cx = int(m["m10"] / m["m00"])
-                    contour_list.append(cx)
+                for contour in contours:
+                    m = cv2.moments(contour)
+                    if m["m00"] != 0:
+                        cx = int(m["m10"] / m["m00"])
+                        contour_list.append(cx)
 
-            if len(contour_list) < 52:
-                selfie_line = self.adjust_brightness(selfie_line, 4)
-            if len(contour_list) == 52:
-                break
+                if len(contour_list) < 52:
+                    selfie_line = self.adjust_brightness(selfie_line, i)
+                if len(contour_list) == 52:
+                    return contour_list
+            else:
+                print(f"please resize, contour list is {len(contour_list)} long")
+                _, _, keyboard_coordinates = self.get_mouse_coordinates()
 
-        return contour_list
+    def keyboard_getter(self):
+        coordinates = []
+        for i in range(2):
+            x, y = self.get_mouse_coordinates()
+            coordinates.append(x)
+            coordinates.append(y)
+            print(f"mouse position: {x}, {y}")
+
+        keyboard_width = abs(coordinates[0] - coordinates[2])
+        keyboard_height = abs(coordinates[1] - coordinates[3])
+        return keyboard_height, keyboard_width, coordinates
 
     def grab_pixel(self, y_val, x_val):
-        screenshot = self.screenshot
         if y_val > 2559:
             y_val = 2559
         return self.screenshot[x_val][y_val]
