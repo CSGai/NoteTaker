@@ -14,6 +14,7 @@ def get_monitor(mon_num, primary=True):
 
 class Paparatsy:
     def __init__(self, top_left_x, top_left_y_from_top, width, height, monitor_number=1):
+        self.contasted_screenshot = None
         self.mouse_coords = None
         self.listener = None
         self.k_listener = None
@@ -54,8 +55,54 @@ class Paparatsy:
         cv2.imshow("Display", img)
         cv2.waitKey(1)
 
+    def thresholder(self, key_chart, scan_line):
+        while True:
+            selfie_line = self.screenshot_segment(key_chart[0], scan_line, key_chart[2], scan_line + 2)
+            contour_list = []
+            for i in range(10):
+
+                _, thresh = cv2.threshold(selfie_line, 127, 255, cv2.THRESH_BINARY)
+                contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+                for contour in contours:
+                    m = cv2.moments(contour)
+                    if m["m00"] != 0:
+                        cx = int(m["m10"] / m["m00"])
+                        contour_list.append(cx)
+
+                if len(contour_list) < 52:
+                    selfie_line = self.adjust_brightness(selfie_line, i)
+                if len(contour_list) == 52:
+                    return contour_list
+            else:
+                print(f"please resize, contour list is {len(contour_list)} long")
+                _, _, keyboard_coordinates = self.get_mouse_coordinates()
+
+    def keyboard_getter(self):
+        coordinates = []
+        for i in range(2):
+            x, y = self.get_mouse_coordinates()
+            coordinates.append(x)
+            coordinates.append(y)
+            print(f"mouse position: {x}, {y}")
+
+        keyboard_width = abs(coordinates[0] - coordinates[2])
+        keyboard_height = abs(coordinates[1] - coordinates[3])
+        return keyboard_height, keyboard_width, coordinates
+
     def grab_pixel(self, y_val, x_val):
+        if y_val > 2559:
+            y_val = 2559
         return self.screenshot[x_val][y_val]
+
+    @staticmethod
+    def adjust_brightness(img, gamma=1.0):
+        # Apply gamma correction to lower brightness
+        gamma_corrected = numpy.power(img / 255.0, gamma) * 255.0
+        return gamma_corrected.astype(numpy.uint8)
+
+    def add_contrast(self, added_contrast):
+        self.screenshot = cv2.convertScaleAbs(self.screenshot, alpha=added_contrast)
 
     def screenshot_segment(self, top_left_x, top_left_y, bot_right_x, bot_right_y):
         segment = self.screenshot[top_left_y:bot_right_y, top_left_x:bot_right_x]
@@ -102,9 +149,11 @@ class Converter:
     ticks_per_beat = 480
 
     def __init__(self):
+        print("input song name:")
         song_name = input()
         self.song_name = song_name + ".mid"
 
+        print("\ninput song tempo:")
         tempo = int(input())
         self.mf = MIDIFile(1)  # only 1 track
         self.track = 0  # the only track
@@ -115,11 +164,10 @@ class Converter:
 
     def apply_notes(self, note_dict):
         channel = 0
-        volume = 100
+        volume = 70
         pitch = self.piano_notes_midi_dict[note_dict['key']]
         duration = note_dict['duration']
         time = note_dict['time']
-        print(note_dict)
         self.mf.addNote(self.track, channel, pitch, time, duration, volume)
 
     def finish_song(self):
