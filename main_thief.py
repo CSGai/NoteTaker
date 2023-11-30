@@ -267,10 +267,10 @@ class Rouge:
 
     # for testing purposes
 
-    def rbr(self, key_location):  # ratio based resizer
-        kb_width = self.keyboard_width
-        scale_ratio = kb_width / 2560
-        return int(key_location * scale_ratio)
+    # def rbr(self, key_location):  # ratio based resizer
+    #     kb_width = self.keyboard_width
+    #     scale_ratio = kb_width / 2560
+    #     return int(key_location * scale_ratio)
 
     def vst(self):
         # visual segmentaiton test
