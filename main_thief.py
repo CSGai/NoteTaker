@@ -160,8 +160,7 @@ class Rouge:
         # checks for a gsv change in the detection line
         with ThreadPoolExecutor() as tpe:
             detected_changes = list(tpe.map(self.detect_gsv_change, self.base_line))
-            [tpe.submit(self.false_positive_protection, i, detected_changes)
-                       for i in range(len(detected_changes))]
+            [tpe.submit(self.false_positive_protection, i, detected_changes) for i in range(len(detected_changes))]
 
         active_notes = [i for i in self.live_keyboard if i[1] == 1]
         return active_notes
@@ -212,19 +211,15 @@ class Rouge:
         scan_line = self.scan_line_y
         thresh = 100
 
-        white_line = []
         black_line = []
 
         white_notes = self.white_notes
         black_notes = self.black_notes
 
-        white_starting_coords = {}
-        black_starting_coords = {}
-
         dupe_prot = 0
 
-        # stv = self.starting_x_val
-        stv = 0
+        stv = self.starting_x_val
+        # stv = 0
         print("starting key layering process...")
         key_journal = [int(self.screen_grabber.grab_pixel(i, scan_line)) for i in
                        range(self.keyboard_coordinates[0], self.keyboard_coordinates[2], 1)]
@@ -240,7 +235,7 @@ class Rouge:
 
         black_line = [i-12 for i in black_line]
         white_line = self.screen_grabber.thresholder(self.keyboard_coordinates, scan_line)
-        # white_line = [self.starting_x_val + i for i in white_line]
+        white_line = [self.starting_x_val + i for i in white_line]
 
         print(len(black_line), len(white_line))
         print(f"black line: {black_line}")
