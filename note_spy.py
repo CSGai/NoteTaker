@@ -165,10 +165,20 @@ class Converter:
     def apply_notes(self, note_dict):
         channel = 0
         volume = 70
+
         pitch = self.piano_notes_midi_dict[note_dict['key']]
         duration = note_dict['duration']
         time = note_dict['time']
+
+        controller_number = 64  # Sustain pedal controller number
+
+        controller_value = 0
+        self.mf.addControllerEvent(self.track, channel, time, controller_number, controller_value)
+
         self.mf.addNote(self.track, channel, pitch, time, duration, volume)
+
+        controller_value = 127  # Maximum value (on)
+        self.mf.addControllerEvent(self.track, channel, time, controller_number, controller_value)
 
     def finish_song(self):
         print("finished song")
