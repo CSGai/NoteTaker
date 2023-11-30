@@ -141,7 +141,7 @@ class Rouge:
         self.timer_initiated = time.time()
 
     def main(self):
-        #  self.vst()
+        self.vst()
         while True:
 
             self.timer_buffer = self.og_map.copy()
@@ -160,8 +160,7 @@ class Rouge:
         # checks for a gsv change in the detection line
         with ThreadPoolExecutor() as tpe:
             detected_changes = list(tpe.map(self.detect_gsv_change, self.base_line))
-            [tpe.submit(self.false_positive_protection, i, detected_changes)
-                       for i in range(len(detected_changes))]
+            [tpe.submit(self.false_positive_protection, i, detected_changes) for i in range(len(detected_changes))]
 
         active_notes = [i for i in self.live_keyboard if i[1] == 1]
         return active_notes
@@ -212,14 +211,10 @@ class Rouge:
         scan_line = self.scan_line_y
         thresh = 100
 
-        white_line = []
         black_line = []
 
         white_notes = self.white_notes
         black_notes = self.black_notes
-
-        white_starting_coords = {}
-        black_starting_coords = {}
 
         dupe_prot = 0
 
@@ -238,7 +233,7 @@ class Rouge:
                     black_line.append(t_i)
                 dupe_prot = i
 
-        black_line = [i-13 for i in black_line]
+        black_line = [i-12 for i in black_line]
         white_line = self.screen_grabber.thresholder(self.keyboard_coordinates, scan_line)
         white_line = [self.starting_x_val + i for i in white_line]
 
@@ -250,8 +245,8 @@ class Rouge:
         black_starting_coords = dict(map(lambda i, j: (i, j), black_notes, black_line))
 
         print(f"{white_starting_coords}\n {black_starting_coords}")
-        #  self.test = black_line
-        #  self.tests = white_line
+        self.test = black_line
+        self.tests = white_line
         return white_starting_coords, black_starting_coords
 
     def detect_gsv_change(self, base_line_item):
@@ -292,10 +287,10 @@ class Rouge:
     # @staticmethod
     def draw_lines_from_top_to_bottom(self, image, pixel_locations, color):
         height, width = image.shape
-        for x in pixel_locations:
-            start_point = (int(x), 0)
-            end_point = (int(x), height)
-            cv2.line(image, start_point, end_point, color, 1)
+        # for x in pixel_locations:
+        #     start_point = (int(x), 0)
+        #     end_point = (int(x), height)
+        #     cv2.line(image, start_point, end_point, color, 1)
 
         for x in self.test:
             start_point = (int(x), 0)

@@ -19,6 +19,7 @@ class Paparatsy:
         self.listener = None
         self.k_listener = None
         self.screenshot = None
+
         with mss() as sct:
             monitor = sct.monitors[monitor_number]
             self.monitor = {
@@ -56,27 +57,23 @@ class Paparatsy:
         cv2.waitKey(1)
 
     def thresholder(self, key_chart, scan_line):
-        while True:
+        for i in range(0, 20):
             selfie_line = self.screenshot_segment(key_chart[0], scan_line, key_chart[2], scan_line + 2)
+            selfie_line = self.adjust_brightness(selfie_line, i)
             contour_list = []
-            for i in range(10):
 
-                _, thresh = cv2.threshold(selfie_line, 127, 255, cv2.THRESH_BINARY)
-                contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            _, thresh = cv2.threshold(selfie_line, 127, 255, cv2.THRESH_BINARY)
+            contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-                for contour in contours:
-                    m = cv2.moments(contour)
-                    if m["m00"] != 0:
-                        cx = int(m["m10"] / m["m00"])
-                        contour_list.append(cx)
+            for contour in contours:
+                m = cv2.moments(contour)
+                if m["m00"] != 0:
+                    cx = int(m["m10"] / m["m00"])
+                    contour_list.append(cx)
 
-                if len(contour_list) < 52:
-                    selfie_line = self.adjust_brightness(selfie_line, i)
-                if len(contour_list) == 52:
-                    return contour_list
-            else:
-                print(f"please resize, contour list is {len(contour_list)} long")
-                _, _, keyboard_coordinates = self.get_mouse_coordinates()
+            print(len(contour_list))
+            if len(contour_list) == 52:
+                return contour_list
 
     def keyboard_getter(self):
         coordinates = []
@@ -97,7 +94,6 @@ class Paparatsy:
 
     @staticmethod
     def adjust_brightness(img, gamma=1.0):
-        # Apply gamma correction to lower brightness
         gamma_corrected = numpy.power(img / 255.0, gamma) * 255.0
         return gamma_corrected.astype(numpy.uint8)
 
