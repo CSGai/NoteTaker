@@ -5,7 +5,6 @@ from pynput import keyboard, mouse
 from mss import mss
 from midiutil.MidiFile import MIDIFile
 
-
 def get_monitor(mon_num, primary=True):
     monitors = screeninfo.get_monitors()
     target_monitor = monitors[mon_num]
@@ -57,9 +56,10 @@ class Paparatsy:
         cv2.waitKey(1)
 
     def thresholder(self, key_chart, scan_line):
-        for i in range(0, 20):
+        for i in range(0, 5):
             selfie_line = self.screenshot_segment(key_chart[0], scan_line, key_chart[2], scan_line + 2)
             selfie_line = self.adjust_brightness(selfie_line, i)
+            # self.add_contrast(2)
             contour_list = []
 
             _, thresh = cv2.threshold(selfie_line, 127, 255, cv2.THRESH_BINARY)
@@ -71,9 +71,10 @@ class Paparatsy:
                     cx = int(m["m10"] / m["m00"])
                     contour_list.append(cx)
 
-            print(len(contour_list))
             if len(contour_list) == 52:
                 return contour_list
+            else:
+                print(len(contour_list))
 
     def keyboard_getter(self):
         coordinates = []
