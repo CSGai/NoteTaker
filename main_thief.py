@@ -16,9 +16,6 @@
 # 1. Yahav also helped <3
 
 
-# final thing to add: have loop a key up press to prevent video from darkening
-#  add TRUE keyboard reajustablity by reading the baseline to determine key coords based on the black keys as landmarks
-
 from note_spy import *
 from cv2 import waitKey
 from concurrent.futures import ThreadPoolExecutor
@@ -29,7 +26,7 @@ from keyboard import is_pressed
 class Rouge:
     threshold1 = 10
     threshold2 = 35
-    threshold = threshold2
+    threshold = threshold1
     # List of all black notes on the piano and their starting locations
     black_notes = ["A#0", "C#1", "D#1", "F#1", "G#1",
                    "A#1", "C#2", "D#2", "F#2", "G#2",
@@ -141,7 +138,7 @@ class Rouge:
         self.timer_initiated = time.time()
 
     def main(self):
-        self.vst()
+        # self.vst()
         while True:
 
             self.timer_buffer = self.og_map.copy()
@@ -302,5 +299,6 @@ class Rouge:
             cv2.line(image, start_point, end_point, (50, 100, 255), 1)
 
 
-test = Rouge()
-test.main()
+if __name__ == '__main__':
+    test = Rouge()
+    test.main()

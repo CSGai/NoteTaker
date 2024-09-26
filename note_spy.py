@@ -5,6 +5,7 @@ from pynput import keyboard, mouse
 from mss import mss
 from midiutil.MidiFile import MIDIFile
 
+
 def get_monitor(mon_num, primary=True):
     monitors = screeninfo.get_monitors()
     target_monitor = monitors[mon_num]
@@ -44,7 +45,11 @@ class Paparatsy:
     @staticmethod
     def display_setup(output_mon_num, out_win_pos_offset_x, out_win_pos_offset_y):
         monitor_list = screeninfo.get_monitors()
-        target_monitor = monitor_list[output_mon_num]
+        try:
+            target_monitor = monitor_list[output_mon_num]
+        except:
+            print(output_mon_num)
+            print(len(monitor_list))
 
         cv2.namedWindow("Display", cv2.WINDOW_NORMAL)
         cv2.moveWindow("Display", target_monitor.x + out_win_pos_offset_x, target_monitor.y + out_win_pos_offset_y)
